@@ -1,7 +1,8 @@
 const inquirer = require("inquirer");
 const Query = require("./lib/queries");
+const Update = require("./lib/updates");
 
-const { sqlQueries } = require("./utils/sqlQueries");
+const { sqlQueries, sqlInsert } = require("./utils/sqlQueries");
 
 const welcome = async () => {
   console.log(`
@@ -36,17 +37,50 @@ const promptOptions = async (optionsData) => {
     ])
     .then((answersData) => {
       optionsData.push(answersData);
-      const quit = Boolean;
       if (answersData.options === "View All Departments") {
-        const printDepartments = new Query();
-        sqlQueries(printDepartments.queryAllDepartments());
+        getDepartments();
       } else if (answersData.options === "View All Roles") {
-        const printRoles = new Query();
-        sqlQueries(printRoles.queryAllRoles());
+        getRoles();
       } else if (answersData.options === "View All Employees") {
-        const printEmployees = new Query();
-        sqlQueries(printEmployees.queryAllEmployees());
+        getEmployees();
+      } else if (answersData.options === "Add Department") {
+        promptAddDepartment();
       }
+    });
+};
+
+// *** PRINT DEPARTMENTS
+const getDepartments = async () => {
+  const printDepartments = new Query();
+  sqlQueries(printDepartments.queryAllDepartments());
+  loopOptions();
+};
+// *** PRINT DEPARTMENTS
+const getRoles = async () => {
+  const printRoles = new Query();
+  sqlQueries(printRoles.queryAllRoles());
+  loopOptions();
+};
+// *** PRINT EMPLOYEES
+const getEmployees = async () => {
+  const printEmployees = new Query();
+  sqlQueries(printEmployees.queryAllEmployees());
+  loopOptions();
+};
+
+const promptAddDepartment = async () => {
+  await inquirer
+    .prompt([
+      {
+        type: "input",
+        name: "departmentName",
+        message: "What is the name of the department?",
+      },
+    ])
+    .then((answer) => {
+      console.log("Added " + answer.departmentName + " to the database");
+      const addDepartment = new Update();
+      sqlInsert(addDepartment.newDepartment(), answer.departmentName);
       loopOptions();
     });
 };
@@ -55,7 +89,7 @@ function loopOptions() {
   promptOptions();
 }
 
-/** FUNCTIONS INITIALIZATION
+/** Start App
  ************************************************************/
 function init() {
   welcome().then(() => {
