@@ -1,16 +1,19 @@
 const inquirer = require("inquirer");
+const Query = require("./lib/queries");
 
-const { queryDepartments } = require("./utils/sqlQueries");
+const { sqlQueries } = require("./utils/sqlQueries");
 
-// ********** Options **********
-const promptOptions = async (optionsData) => {
+const welcome = async () => {
   console.log(`
 =================
 Employee
 Manager
 =================
 `);
+};
 
+// ********** Options **********
+const promptOptions = async (optionsData) => {
   if (!optionsData) {
     optionsData = [];
   }
@@ -33,70 +36,30 @@ Manager
     ])
     .then((answersData) => {
       optionsData.push(answersData);
+      const quit = Boolean;
       if (answersData.options === "View All Departments") {
-        return queryDepartments();
+        const printDepartments = new Query();
+        sqlQueries(printDepartments.queryAllDepartments());
+      } else if (answersData.options === "View All Roles") {
+        const printRoles = new Query();
+        sqlQueries(printRoles.queryAllRoles());
+      } else if (answersData.options === "View All Employees") {
+        const printEmployees = new Query();
+        sqlQueries(printEmployees.queryAllEmployees());
       }
+      loopOptions();
     });
 };
 
-/** FUNCTIONS INITIALIZATION
- ************************************************************/
-
-function init() {
+function loopOptions() {
   promptOptions();
 }
+
+/** FUNCTIONS INITIALIZATION
+ ************************************************************/
+function init() {
+  welcome().then(() => {
+    return promptOptions();
+  });
+}
 init();
-// *** PRINT DEPARTMENTS
-// db.promise()
-//   .query("SELECT * FROM departments")
-//   .then(([rows, fields]) => {
-//     const table = cTable.getTable(rows);
-//     // console.log(table);
-//     console.log(rows);
-//   })
-//   .catch(console.log)
-//   .then(() => db.end());
-
-// *** PRINT ROLES
-// const sql = `SELECT
-//     roles.id,
-//     title,
-//     name As department,
-//     salary
-//     FROM roles
-//     INNER JOIN departments
-//     ON roles.department_id = departments.id
-//     `;
-
-// db.promise()
-//   .query(sql)
-//   .then(([rows, fields]) => {
-//     const table = cTable.getTable(rows);
-//     console.log(table);
-//   })
-//   .catch(console.log)
-//   .then(() => db.end());
-
-// *** PRINT EMPLOYEES
-// const sql2 = `SELECT
-//     employees.id,
-//     first_name,
-//     last_name,
-//     title,
-//     name As department,
-//     manager_id
-//     FROM employees
-//     INNER JOIN roles
-//     ON employees.role_id = roles.id
-//     INNER JOIN departments
-//     ON roles.department_id = departments.id
-//     `;
-
-// db.promise()
-//   .query(sql2)
-//   .then(([rows, fields]) => {
-//     const table = cTable.getTable(rows);
-//     console.log(table);
-//   })
-//   .catch(console.log)
-//   .then(() => db.end());
