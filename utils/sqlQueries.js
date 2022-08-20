@@ -7,6 +7,7 @@ function sqlQueries(promptOptions) {
     .query(promptOptions)
     .then(([rows, fields]) => {
       console.table(rows);
+      return rows;
     })
     .catch(console.log);
   // .then(() => db.end());

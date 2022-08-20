@@ -1,5 +1,5 @@
 const inquirer = require("inquirer");
-// const db = require("./db/connection");
+const db = require("./db/connection");
 const Query = require("./lib/queries");
 const Update = require("./lib/updates");
 
@@ -72,7 +72,7 @@ const getDepartments = async () => {
   const printDepartments = new Query();
   sqlQueries(printDepartments.queryAllDepartments());
 };
-// *** PRINT DEPARTMENTS
+// *** PRINT ROLES
 const getRoles = async () => {
   const printRoles = new Query();
   sqlQueries(printRoles.queryAllRoles());
@@ -101,69 +101,81 @@ const promptAddDepartment = async () => {
 };
 
 const promptAddRole = async () => {
-  await inquirer
-    .prompt([
-      {
-        type: "input",
-        name: "roleName",
-        message: "What is the name of the role?",
-        validate: (answers) => {
-          if (answers) {
-            return true;
-          } else {
-            console.log("Please enter role name!");
-            return false;
-          }
-        },
-      },
-      {
-        type: "input",
-        name: "roleSalary",
-        message: "What is the salary of the role?",
-        validate: (answers) => {
-          let value = answers;
-          let isNum = /^\d+$/.test(value);
+  async function viewTables(tablesArray) {
+    const rolesTable = `SELECT * FROM departments`;
+    await db
+      .promise()
+      .query(rolesTable)
+      .then(([rows, fields]) => {
+        let row = rows.map((getTableName) => {
+          return {
+            id: getTableName.id,
+            name: getTableName.name,
+          };
+        });
+        return row;
+      })
+      .catch(console.log)
+      .then((row) => {
+        return inquirer
+          .prompt([
+            {
+              type: "input",
+              name: "roleName",
+              message: "What is the name of the role?",
+              validate: (answers) => {
+                if (answers) {
+                  return true;
+                } else {
+                  console.log("Please enter role name!");
+                  return false;
+                }
+              },
+            },
+            {
+              type: "input",
+              name: "roleSalary",
+              message: "What is the salary of the role?",
+              validate: (answers) => {
+                let value = answers;
+                let isNum = /^\d+$/.test(value);
 
-          if (isNum) {
-            return true;
-          } else {
-            console.log("Please enter a valid salary!");
-          }
-        },
-      },
-      {
-        type: "list",
-        name: "homeDepartment",
-        message: "Which department does the role belong to?",
-        choices: ["Sales", "Engineering", "Finance", "Legal"],
-        filter: (answers) => {
-          if (answers === "Sales") {
-            return (answers = 1);
-          }
-          if (answers === "Engineering") {
-            return (answers = 2);
-          }
-          if (answers === "Finance") {
-            return (answers = 3);
-          }
-          if (answers === "Legal") {
-            return (answers = 4);
-          }
-        },
-      },
-    ])
-    .then((answer) => {
-      console.log(answer);
-      console.log("Added " + answer.roleName + " to the database");
-      const addRole = new Update();
-      sqlInsertRole(
-        addRole.newRole(),
-        answer.roleName,
-        answer.homeDepartment,
-        answer.roleSalary
-      );
-      setTimeout(promptOptions, 100);
-    });
+                if (isNum) {
+                  return true;
+                } else {
+                  console.log("Please enter a valid salary!");
+                }
+              },
+            },
+            {
+              type: "list",
+              name: "homeDepartment",
+              message: "Which department does the role belong to?",
+              choices: row,
+              filter: (answers) => {
+                let department_id = row.map((getID) => {
+                  // console.log(getTableName.name);
+                  return (answers.homeDepartment = getID.id);
+                });
+                return department_id;
+              },
+            },
+          ])
+          .then((answer) => {
+            console.log(answer);
+            console.log("Added " + answer.roleName + " to the database");
+            const addRole = new Update();
+            sqlInsertRole(
+              addRole.newRole(),
+              answer.roleName,
+              answer.department_id,
+              answer.roleSalary
+            );
+            setTimeout(promptOptions, 100);
+          });
+      });
+  }
+  viewTables();
 };
 
 const promptEmployee = async () => {
