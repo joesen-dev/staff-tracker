@@ -55,7 +55,7 @@ const promptOptions = async () => {
       } else if (answersData.options === "Add Role") {
         promptAddRole();
       } else if (answersData.options === "Add Employee") {
-        promptEmployee();
+        promptAddEmployee();
       } else if (answersData.options === "Update Employee Role") {
         promptUpdateEmployee();
       }
@@ -170,243 +170,145 @@ const promptAddRole = async () => {
   viewTables();
 };
 
-const promptEmployee = async () => {
-  await inquirer
-    .prompt([
-      {
-        type: "input",
-        name: "firstName",
-        message: "What is the employee's first name?",
-        validate: (answers) => {
-          if (answers) {
-            return true;
-          } else {
-            console.log("Please enter the employee first name!");
-            return false;
-          }
-        },
-      },
-      {
-        type: "input",
-        name: "lastName",
-        message: "What is the employee's last name?",
-        validate: (answers) => {
-          if (answers) {
-            return true;
-          } else {
-            console.log("Please enter the employee last name!");
-            return false;
-          }
-        },
-      },
-      {
-        type: "list",
-        name: "employeeRole",
-        message: "What is the employee's role?",
-        choices: [
-          "Sales Lead",
-          "Salesperson",
-          "Software Engineer",
-          "Account Manager",
-          "Accountant",
-          "Legal Team Lead",
-          "Lawyer",
-        ],
-        filter: (answers) => {
-          if (answers === "Sales Lead") {
-            return (answers = 1);
-          }
-          if (answers === "Salesperson") {
-            return (answers = 2);
-          }
-          if (answers === "Software Engineer") {
-            return (answers = 3);
-          }
-          if (answers === "Account Manager") {
-            return (answers = 4);
-          }
-          if (answers === "Accountant") {
-            return (answers = 5);
-          }
-          if (answers === "Legal Team Lead") {
-            return (answers = 6);
-          }
-          if (answers === "Lawyer") {
-            return (answers = 7);
-          }
-        },
-      },
-      {
-        type: "list",
-        name: "manager",
-        message: "Who is the employee's manager?",
-        choices: [
-          "John Doe",
-          "Mike Chan",
-          "Ashley Rodriguez",
-          "Kevin Tupik",
-          "Kunal Singh",
-          "Malia Brown",
-          "Sarah Lourd",
-          "Tom Allen",
-        ],
-        filter: (answers) => {
-          console.log("L ", answers);
-          if (answers === "John Doe") {
-            return (answers = 1);
-          }
-          if (answers === "Mike Chan") {
-            return (answers = 2);
-          }
-          if (answers === "Ashley Rodriguez") {
-            return (answers = 3);
-          }
-          if (answers === "Kevin Tupik") {
-            return (answers = 4);
-          }
-          if (answers === "Kunal Singh") {
-            return (answers = 5);
-          }
-          if (answers === "Malia Brown") {
-            return (answers = 6);
-          }
-          if (answers === "Sarah Lourd") {
-            return (answers = 7);
-          }
-          if (answers === "Tom Allen") {
-            return (answers = 8);
-          }
-        },
-      },
-    ])
-    .then((answer) => {
-      console.log(
-        "Added " + answer.firstName + " " + answer.lastName + " to the database"
-      );
-      const addEmployee = new Update();
-      sqlInsertEmployee(
-        addEmployee.newEmployee(),
-        answer.firstName,
-        answer.lastName,
-        answer.employeeRole,
-        answer.manager
-      );
-      setTimeout(promptOptions, 100);
-    });
-};
-
-const promptUpdateEmployee = async () => {
+const promptAddEmployee = async () => {
   async function viewTables(tablesArray) {
     const rolesTable = `SELECT * FROM roles`;
     await db
       .promise()
       .query(rolesTable)
       .then(([rows, fields]) => {
-        let row = rows.map((getTableName) => {
+        let roles = rows.map((getTableName) => {
           return {
+            name: getTableName.title,
             value: getTableName.id,
-            name: getTableName.name,
           };
         });
-        return row;
+        console.log("roles");
+        console.log(roles);
+        return roles;
       })
-      .catch(console.log);
+      .catch(console.log)
+      .then((roles) => {
+        return inquirer.prompt([
+          {
+            type: "input",
+            name: "firstName",
+            message: "What is the employee's first name?",
+            validate: (answers) => {
+              if (answers) {
+                return true;
+              } else {
+                console.log("Please enter the employee first name!");
+                return false;
+              }
+            },
+          },
+          {
+            type: "input",
+            name: "lastName",
+            message: "What is the employee's last name?",
+            validate: (answers) => {
+              if (answers) {
+                return true;
+              } else {
+                console.log("Please enter the employee last name!");
+                return false;
+              }
+            },
+          },
+          {
+            type: "list",
+            name: "employeeRole",
+            message: "What is the employee's role?",
+            choices: roles,
+          },
+          {
+            type: "input",
+            name: "manager",
+            message:
+              "Who is the employee's manager? You will need to enter that manager's ID for the database to update",
+            validate: (answers) => {
+              let value = answers;
+              let isNum = /^\d+$/.test(value);
+
+              if (isNum) {
+                return true;
+              } else {
+                console.log("Please enter a valid manager ID!");
+              }
+            },
+          },
+        ]);
+      })
+      .then((answer) => {
+        console.log(
+          "Added " +
+            answer.firstName +
+            " " +
+            answer.lastName +
+            " to the database"
+        );
+        const addEmployee = new Update();
+        sqlInsertEmployee(
+          addEmployee.newEmployee(),
+          answer.firstName,
+          answer.lastName,
+          answer.employeeRole,
+          answer.manager
+        );
+        setTimeout(promptOptions, 100);
+      });
   }
   viewTables();
-  await inquirer
-    .prompt([
-      {
-        type: "list",
-        name: "employees",
-        message: "Which employee's role do you want to update?",
-        choices: [
-          "John Doe",
-          "Mike Chan",
-          "Ashley Rodriguez",
-          "Kevin Tupik",
-          "Kunal Singh",
-          "Malia Brown",
-          "Sarah Lourd",
-          "Tom Allen",
-        ],
-        filter: (answers) => {
-          console.log("L ", answers);
-          if (answers === "John Doe") {
-            return (answers = 1);
-          }
-          if (answers === "Mike Chan") {
-            return (answers = 2);
-          }
-          if (answers === "Ashley Rodriguez") {
-            return (answers = 3);
-          }
-          if (answers === "Kevin Tupik") {
-            return (answers = 4);
-          }
-          if (answers === "Kunal Singh") {
-            return (answers = 5);
-          }
-          if (answers === "Malia Brown") {
-            return (answers = 6);
-          }
-          if (answers === "Sarah Lourd") {
-            return (answers = 7);
-          }
-          if (answers === "Tom Allen") {
-            return (answers = 8);
-          }
-        },
-      },
-      {
-        type: "list",
-        name: "roles",
-        message: "Which role do you want to assign the selected employee?",
-        choices: [
-          "Sales Lead",
-          "Salesperson",
-          "Software Engineer",
-          "Account Manager",
-          "Accountant",
-          "Legal Team Lead",
-          "Lawyer",
-        ],
-        filter: (answers) => {
-          if (answers === "Sales Lead") {
-            return (answers = 1);
-          }
-          if (answers === "Salesperson") {
-            return (answers = 2);
-          }
-          if (answers === "Software Engineer") {
-            return (answers = 3);
-          }
-          if (answers === "Account Manager") {
-            return (answers = 4);
-          }
-          if (answers === "Accountant") {
-            return (answers = 5);
-          }
-          if (answers === "Legal Team Lead") {
-            return (answers = 6);
-          }
-          if (answers === "Lawyer") {
-            return (answers = 7);
-          }
-        },
-      },
-    ])
-    .then((answer) => {
-      console.log(answer);
-      console.log("Updated employee's role");
-      const updateRole = new Update();
-      sqlUpdateEmployee(
-        updateRole.updateEmployee(),
-        answer.employees,
-        answer.roles,
-        answer.roleSalary
-      );
-      setTimeout(promptOptions, 100);
-    });
+};
+
+const promptUpdateEmployee = async () => {
+  async function viewTables(tablesArray) {
+    const employeesTable = `SELECT * FROM employees ORDER BY first_name`;
+    await db
+      .promise()
+      .query(employeesTable)
+      .then(([rows, fields]) => {
+        let employees = rows.map((getTableName) => {
+          return {
+            name: getTableName.first_name + " " + getTableName.last_name,
+            value: getTableName.id,
+          };
+        });
+        console.log("employees");
+        console.log(employees);
+        return employees;
+      })
+      .catch(console.log)
+      .then((employees) => {
+        return inquirer.prompt([
+          {
+            type: "list",
+            name: "employees",
+            message: "Which employee's role do you want to update?",
+            choices: employees,
+          },
+          {
+            type: "input",
+            name: "roles",
+            message:
+              "Enter the ID of the role you want to assign the selected employee?",
+          },
+        ]);
+      })
+      .then((answer) => {
+        console.log("Updated employee's role");
+        const updateRole = new Update();
+        sqlUpdateEmployee(
+          updateRole.updateEmployee(),
+          answer.employees,
+          answer.roles,
+          answer.roleSalary
+        );
+        setTimeout(promptOptions, 100);
+      });
+  }
+  viewTables();
 };
 
 /** Start App

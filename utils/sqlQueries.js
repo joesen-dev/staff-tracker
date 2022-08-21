@@ -10,7 +10,6 @@ function sqlQueries(promptOptions) {
       return rows;
     })
     .catch(console.log);
-  // .then(() => db.end());
 }
 
 // *** INSERTS
@@ -28,7 +27,6 @@ function sqlInsertDepartment(answer, name) {
       console.log(table);
     })
     .catch(console.log);
-  // .then(() => db.end());
 }
 
 // *** Add Role
@@ -46,7 +44,6 @@ function sqlInsertRole(answer, title, department_id, salary) {
       console.log(table);
     })
     .catch(console.log);
-  // .then(() => db.end());
 }
 
 // *** Add Employee
@@ -71,7 +68,6 @@ function sqlInsertEmployee(
       console.log(table);
     })
     .catch(console.log);
-  // .then(() => db.end());
 }
 
 // *** Update Employee
@@ -89,7 +85,6 @@ function sqlUpdateEmployee(answer, employeeID, roleBeingUpdated) {
       console.log(table);
     })
     .catch(console.log);
-  // .then(() => db.end());
 }
 
 module.exports = {
