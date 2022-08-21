@@ -102,14 +102,14 @@ const promptAddDepartment = async () => {
 
 const promptAddRole = async () => {
   async function viewTables(tablesArray) {
-    const rolesTable = `SELECT * FROM departments`;
+    const departmentsTable = `SELECT * FROM departments`;
     await db
       .promise()
-      .query(rolesTable)
+      .query(departmentsTable)
       .then(([rows, fields]) => {
         let row = rows.map((getTableName) => {
           return {
-            id: getTableName.id,
+            value: getTableName.id,
             name: getTableName.name,
           };
         });
@@ -152,23 +152,15 @@ const promptAddRole = async () => {
               name: "homeDepartment",
               message: "Which department does the role belong to?",
               choices: row,
-              filter: (answers) => {
-                let department_id = row.map((getID) => {
-                  // console.log(getTableName.name);
-                  return (answers.homeDepartment = getID.id);
-                });
-                return department_id;
-              },
             },
           ])
           .then((answer) => {
-            console.log(answer);
             console.log("Added " + answer.roleName + " to the database");
             const addRole = new Update();
             sqlInsertRole(
               addRole.newRole(),
               answer.roleName,
-              answer.department_id,
+              answer.homeDepartment,
               answer.roleSalary
             );
             setTimeout(promptOptions, 100);
@@ -304,6 +296,23 @@ const promptEmployee = async () => {
 };
 
 const promptUpdateEmployee = async () => {
+  async function viewTables(tablesArray) {
+    const rolesTable = `SELECT * FROM roles`;
+    await db
+      .promise()
+      .query(rolesTable)
+      .then(([rows, fields]) => {
+        let row = rows.map((getTableName) => {
+          return {
+            value: getTableName.id,
+            name: getTableName.name,
+          };
+        });
+        return row;
+      })
+      .catch(console.log);
+  }
+  viewTables();
   await inquirer
     .prompt([
       {
