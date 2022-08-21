@@ -183,8 +183,6 @@ const promptAddEmployee = async () => {
             value: getTableName.id,
           };
         });
-        console.log("roles");
-        console.log(roles);
         return roles;
       })
       .catch(console.log)
@@ -275,8 +273,6 @@ const promptUpdateEmployee = async () => {
             value: getTableName.id,
           };
         });
-        console.log("employees");
-        console.log(employees);
         return employees;
       })
       .catch(console.log)
